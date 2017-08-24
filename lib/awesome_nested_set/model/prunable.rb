@@ -37,9 +37,11 @@ module CollectiveIdea #:nodoc:
 
           def destroy_or_delete_descendants
             if acts_as_nested_set_options[:dependent] == :destroy
-              descendants.each do |model|
-                model.skip_before_destroy = true
-                model.destroy
+              ActiveRecord::Base.transaction do
+                descendants.each do |model|
+                  model.skip_before_destroy = true
+                  model.destroy
+                end
               end
             elsif acts_as_nested_set_options[:dependent] == :restrict_with_exception
               raise ActiveRecord::DeleteRestrictionError.new(:children) unless leaf?
